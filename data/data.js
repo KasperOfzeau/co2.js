@@ -8,7 +8,7 @@ const comparisonData = {
     airplane: {
         startSentence: "Daarmee kun je met een vliegtuig ",
         consumptionPerGram: 0.005,
-        unit: "uur",
+        unit: "kilometer",
         endSentence: " vliegen."
     },
     shower: {
