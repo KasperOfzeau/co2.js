@@ -1,4 +1,5 @@
-document.querySelector('#button').addEventListener("click", run);
+// when calculate button pressed
+document.querySelector('#button').addEventListener("click", fetchSite);
 
 // selecting loading div
 const loader = document.querySelector("#loading");
@@ -20,20 +21,7 @@ let estimatedCO2;
 let estimatedCO2Year;
 import tgwf from 'https://cdn.skypack.dev/@tgwf/co2';
 
-const calculateEmissions = () => {
-    const totalBytes = data['total-byte-weight'].numericValue;
-    const emissions = new tgwf.co2({ model: "swd" })
-    const bytesSent = totalBytes;
-    mbSent = (bytesSent / Math.pow(1024, 2)).toFixed(2) * 1;
-    const greenHost = false // Is the data transferred from a green host?
-
-    estimatedCO2 = emissions.perVisit(bytesSent, greenHost).toFixed(3);
-    estimatedCO2Year = estimatedCO2 * 1000 * 12;
-
-    showInitialContent(page, estimatedCO2, estimatedCO2Year, mbSent);
-}
-
-function run() {
+function fetchSite() {
     let url = document.querySelector('#input').value;
     if(isValidUrl(url)) {
         const queryUrl = setUpQuery(url);
@@ -41,12 +29,12 @@ function run() {
         fetch(queryUrl)
             .then(response => response.json())
             .then(json => {
-                if(json.lighthouseResult.audits != 'undefined') {
+                if(typeof json.lighthouseResult.audits !== 'undefined') {
                     page = json.id;
                     console.log(json)
                     data = json.lighthouseResult.audits;
                     hideLoading();
-                    calculateEmissions(); 
+                    showInitialContent();
                 } else {
                     hideLoading();
                     console.log(json['error'])
@@ -71,25 +59,60 @@ function isValidUrl(string) {
     }
 }
 
-function showInitialContent(page, estimatedCO2, estimatedCO2Year, mbSent) {
-    document.body.innerHTML = '';
-    const title = document.createElement('h1');
-    title.innerHTML = `${page} stoot ${estimatedCO2} gram carbon uit per bezoek. Er wordt ${mbSent}MB geladen.`;
-    document.body.appendChild(title);
+function showInitialContent() {
+    if(calculateEmissions()) {
+        document.body.innerHTML = '';
+        const title = document.createElement('h1');
+        title.innerHTML = `${page} stoot ${estimatedCO2} gram carbon uit per bezoek. Er wordt ${mbSent}MB geladen.`;
+        document.body.appendChild(title);
 
-    const subtitle = document.createElement('h2');
-    subtitle.innerHTML = `Dat is op een jaarlijkse basis met 1000 bezoekers per maand ${estimatedCO2Year} gram carbon uitstoot.`;
-    document.body.appendChild(subtitle);
+        const subtitle = document.createElement('h2');
+        subtitle.innerHTML = `Dat is op een jaarlijkse basis met 1000 bezoekers per maand ${estimatedCO2Year} gram carbon uitstoot.`;
+        document.body.appendChild(subtitle);
 
-    const container = document.createElement('ul');
-    for (const item in comparisonData) {
-        let li = document.createElement("li");
-        li.innerHTML = comparisonData[item].startSentence + (comparisonData[item].consumptionPerGram * estimatedCO2Year).toFixed(2) + " " + comparisonData[item].unit + comparisonData[item].endSentence
-        container.append(li);
+        const container = document.createElement('ul');
+        for (const item in comparisonData) {
+            let li = document.createElement("li");
+            li.innerHTML = comparisonData[item].startSentence + (comparisonData[item].consumptionPerGram * estimatedCO2Year).toFixed(2) + " " + comparisonData[item].unit + comparisonData[item].endSentence
+            container.append(li);
+        }
+        document.body.appendChild(container);
+
+        displayUnoptimizedImages();
     }
-    document.body.appendChild(container);
+}
 
-    const pageTested = document.createElement('p');
-    pageTested.textContent = `Page tested: ${page}`;
-    document.body.appendChild(pageTested);
+const calculateEmissions = () => {
+    const totalBytes = data['total-byte-weight'].numericValue;
+    const emissions = new tgwf.co2({ model: "swd" })
+    const bytesSent = totalBytes;
+    mbSent = (bytesSent / Math.pow(1024, 2)).toFixed(2) * 1;
+    const greenHost = false // Is the data transferred from a green host?
+
+    estimatedCO2 = emissions.perVisit(bytesSent, greenHost).toFixed(3);
+    estimatedCO2Year = estimatedCO2 * 1000 * 12;
+
+    if(estimatedCO2 !== '') {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+const displayUnoptimizedImages = () => {
+    console.log(data['uses-optimized-images'])
+    let unoptimizedImages = data['uses-optimized-images'].details.items;
+    const title = document.createElement('h2');
+    title.innerHTML = `${unoptimizedImages.length} afbeeldingen die geopimaliseerd kunnen worden.`;
+    const unoptimizedImagesList = document.createElement('ul'); 
+    unoptimizedImages.forEach(element => {
+        console.log(element['node'])
+        const kbSize = (element.totalBytes / 1024).toFixed(2);
+        const kbToSave = (element.wastedBytes / 1024).toFixed(2);
+        let li = document.createElement("li");
+        li.innerHTML = '<img class="unoptimized__thumbnail" src="' + element.url + '"><a target="_blank" href="' + element.url + '">' + element.url + '</a> Grootte bestand: ' + kbSize + 'kb, Te besparen: ' + kbToSave + 'kb'; 
+        unoptimizedImagesList.append(li);
+    });
+    document.body.appendChild(title);
+    document.body.appendChild(unoptimizedImagesList);
 }
