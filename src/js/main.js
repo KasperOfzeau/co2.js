@@ -13,7 +13,7 @@ function hideLoading() {
     loader.classList.remove("display");
 }
 
-let totalBytes;
+let data;
 let mbSent;
 let page;
 let estimatedCO2; 
@@ -21,9 +21,10 @@ let estimatedCO2Year;
 import tgwf from 'https://cdn.skypack.dev/@tgwf/co2';
 
 const calculateEmissions = () => {
+    const totalBytes = data['total-byte-weight'].numericValue;
     const emissions = new tgwf.co2({ model: "swd" })
     const bytesSent = totalBytes;
-    const mbSent = (bytesSent / Math.pow(1024, 2)).toFixed(2) * 1;
+    mbSent = (bytesSent / Math.pow(1024, 2)).toFixed(2) * 1;
     const greenHost = false // Is the data transferred from a green host?
 
     estimatedCO2 = emissions.perVisit(bytesSent, greenHost).toFixed(3);
@@ -43,7 +44,7 @@ function run() {
                 if(json.lighthouseResult.audits != 'undefined') {
                     page = json.id;
                     console.log(json)
-                    totalBytes = json.lighthouseResult.audits['total-byte-weight'].numericValue;
+                    data = json.lighthouseResult.audits;
                     hideLoading();
                     calculateEmissions(); 
                 } else {
