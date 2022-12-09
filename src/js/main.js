@@ -52,8 +52,8 @@ function setUpQuery(url) {
 
 function isValidUrl(string) {
     try {
-        new URL(string);
-        return true;
+        const url = new URL(string);
+        return url.protocol === 'http:' || url.protocol === 'https:';
     } catch (err) {
         return false;
     }
@@ -79,6 +79,8 @@ function showInitialContent() {
         document.body.appendChild(container);
 
         displayUnoptimizedImages();
+        displayUnminifiedCss();
+        displayUnminifiedJS();
     }
 }
 
@@ -100,13 +102,11 @@ const calculateEmissions = () => {
 }
 
 const displayUnoptimizedImages = () => {
-    console.log(data['uses-optimized-images'])
     let unoptimizedImages = data['uses-optimized-images'].details.items;
     const title = document.createElement('h2');
     title.innerHTML = `${unoptimizedImages.length} afbeeldingen die geopimaliseerd kunnen worden.`;
     const unoptimizedImagesList = document.createElement('ul'); 
     unoptimizedImages.forEach(element => {
-        console.log(element['node'])
         const kbSize = (element.totalBytes / 1024).toFixed(2);
         const kbToSave = (element.wastedBytes / 1024).toFixed(2);
         let li = document.createElement("li");
@@ -115,4 +115,38 @@ const displayUnoptimizedImages = () => {
     });
     document.body.appendChild(title);
     document.body.appendChild(unoptimizedImagesList);
+}
+
+const displayUnminifiedCss = () => {
+    console.log(data['unminified-css'])
+    let unminifiedCss = data['unminified-css'].details.items;
+    const title = document.createElement('h2');
+    title.innerHTML = `${unminifiedCss.length} css bestand(en) die geopimaliseerd kunnen worden.`;
+    const unminifiedCssList = document.createElement('ul'); 
+    unminifiedCss.forEach(element => {
+        const kbSize = (element.totalBytes / 1024).toFixed(2);
+        const kbToSave = (element.wastedBytes / 1024).toFixed(2);
+        let li = document.createElement("li");
+        li.innerHTML = '<a target="_blank" href="' + element.url + '">' + element.url + '</a> Grootte bestand: ' + kbSize + 'kb, Te besparen: ' + kbToSave + 'kb'; 
+        unminifiedCssList.append(li);
+    });
+    document.body.appendChild(title);
+    document.body.appendChild(unminifiedCssList);
+}
+
+const displayUnminifiedJS = () => {
+    console.log(data['unminified-javascript'])
+    let unminifiedJS = data['unminified-javascript'].details.items;
+    const title = document.createElement('h2');
+    title.innerHTML = `${unminifiedJS.length} javascript bestand(en) die geopimaliseerd kunnen worden.`;
+    const unminifiedJSList = document.createElement('ul'); 
+    unminifiedJS.forEach(element => {
+        const kbSize = (element.totalBytes / 1024).toFixed(2);
+        const kbToSave = (element.wastedBytes / 1024).toFixed(2);
+        let li = document.createElement("li");
+        li.innerHTML = '<a target="_blank" href="' + element.url + '">' + element.url + '</a> Grootte bestand: ' + kbSize + 'kb, Te besparen: ' + kbToSave + 'kb'; 
+        unminifiedJSList.append(li);
+    });
+    document.body.appendChild(title);
+    document.body.appendChild(unminifiedJSList);
 }
