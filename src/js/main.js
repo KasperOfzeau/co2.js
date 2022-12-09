@@ -40,11 +40,17 @@ function run() {
         fetch(queryUrl)
             .then(response => response.json())
             .then(json => {
-                hideLoading();
-                page = json.id;
-                totalBytes = json.lighthouseResult.audits['total-byte-weight'].numericValue;
-                calculateEmissions();
-        });
+                if(json.lighthouseResult.audits != 'undefined') {
+                    page = json.id;
+                    console.log(json)
+                    totalBytes = json.lighthouseResult.audits['total-byte-weight'].numericValue;
+                    hideLoading();
+                    calculateEmissions(); 
+                } else {
+                    hideLoading();
+                    console.log(json['error'])
+                }
+             });
     } else {
         console.log('error')
     }
