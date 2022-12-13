@@ -49,7 +49,7 @@ function fetchSite() {
 }
 
 function setUpQuery(url) {
-        const query = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${url}`;
+        const query = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${url}&key=AIzaSyCvG8NPSMC_9SAXEmhxz6If0FKgzTNJlOg`;
         return query;
 }
 
